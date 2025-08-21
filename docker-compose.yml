@@ -3,8 +3,9 @@ version: '3.8'
 services:
   zalo-webhook:
     build: .
+    # Không expose port ra ngoài, chỉ chạy internal
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8001:8000"  # Chỉ bind localhost, port 8001
     environment:
       - PORT=8000
       - DEBUG=False
@@ -19,21 +20,25 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - webhook-network
 
   # Optional: Redis for caching
   # redis:
   #   image: redis:7-alpine
   #   ports:
-  #     - "6379:6379"
+  #     - "127.0.0.1:6379:6379"  # Chỉ bind localhost
   #   volumes:
   #     - redis_data:/data
   #   restart: unless-stopped
+  #   networks:
+  #     - webhook-network
 
   # Optional: PostgreSQL database
   # postgres:
   #   image: postgres:15-alpine
   #   ports:
-  #     - "5432:5432"
+  #     - "127.0.0.1:5432:5432"  # Chỉ bind localhost
   #   environment:
   #     POSTGRES_DB: zalo_webhook
   #     POSTGRES_USER: webhook_user
@@ -41,6 +46,12 @@ services:
   #   volumes:
   #     - postgres_data:/var/lib/postgresql/data
   #   restart: unless-stopped
+  #   networks:
+  #     - webhook-network
+
+networks:
+  webhook-network:
+    driver: bridge
 
 # volumes:
 #   redis_data:
