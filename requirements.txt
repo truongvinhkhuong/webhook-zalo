@@ -5,6 +5,7 @@ pydantic-settings==2.8.0
 python-multipart==0.0.20
 httpx==0.28.1
 python-dotenv==1.0.1
+jinja2==3.1.5
 
 # Optional - nếu cần database
 # sqlalchemy==2.0.30
