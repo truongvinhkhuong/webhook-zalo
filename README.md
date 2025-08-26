@@ -1,319 +1,219 @@
 # Zalo Webhook Server
 
-Hệ thống nhận và xử lý các sự kiện (events) được Zalo gửi qua HTTP POST đến Webhook URL.
+Server để nhận và xử lý các sự kiện từ Zalo OA (Official Account).
 
 ## Tính năng
 
-- ✅ Nhận và xử lý các sự kiện từ Zalo Official Account
-- ✅ Xử lý tin nhắn text, hình ảnh, file, sticker, vị trí
-- ✅ Xử lý sự kiện follow/unfollow, submit info, click button
-- ✅ Validation signature để đảm bảo bảo mật
-- ✅ Rate limiting để tránh spam
-- ✅ Logging chi tiết
-- ✅ API documentation tự động (FastAPI)
-- ✅ Health check endpoint
+- **Webhook Endpoint**: Nhận và xử lý events từ Zalo
+- **Dashboard Web**: Giao diện quản lý đẹp mắt với thống kê real-time
+- **Health Check**: Kiểm tra trạng thái server
+- **Event Logging**: Lưu trữ và xem lại các events
+- **Security**: Xác thực chữ ký từ Zalo
+- **Docker Support**: Dễ dàng deploy và scale
 
-## Yêu cầu
+## Endpoints
 
-- Python 3.8+
-- Zalo Official Account
-- SSL certificate cho domain
-- Server có thể truy cập từ Internet
+| Endpoint | Mô tả | Response |
+|----------|-------|----------|
+| `/` | Dashboard chính | HTML Dashboard |
+| `/health` | Health check API | JSON |
+| `/webhook` | Webhook endpoint | Text/JSON |
+| `/events` | Danh sách events | JSON |
 
-## ⚡ Cài đặt nhanh
+## Cài đặt
 
-### 1. Clone và cài đặt dependencies
-
+### 1. Clone repository
 ```bash
 git clone <repository-url>
 cd webhook-zalo
+```
+
+### 2. Cài đặt dependencies
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Cấu hình môi trường
-
+### 3. Cấu hình environment
 ```bash
 cp .env.example .env
-# Chỉnh sửa file .env với thông tin của bạn
+# Chỉnh sửa .env với thông tin Zalo của bạn
 ```
 
-### 3. Chạy server
-
+### 4. Chạy với Docker (Khuyến nghị)
 ```bash
-# Development
-python app.py
+# Build và chạy
+docker-compose up -d
 
-# Production
-uvicorn app:app --host 0.0.0.0 --port 8000
+# Hoặc sử dụng script restart
+./restart_service.sh
 ```
 
-## ⚙️ Cấu hình
+### 5. Chạy trực tiếp
+```bash
+python run.py
+```
+
+## Cấu hình
 
 ### Environment Variables
 
-Tạo file `.env` từ `.env.example` và cập nhật các giá trị:
+Tạo file `.env` với các biến sau:
 
 ```env
+# Zalo Configuration
+ZALO_VERIFY_TOKEN=your_verify_token_here
+ZALO_SECRET_KEY=your_secret_key_here
+
 # Server Configuration
 PORT=8000
 DEBUG=False
 
-# Zalo Webhook Configuration
-ZALO_SECRET_KEY=your_zalo_secret_key_here
-ZALO_VERIFY_TOKEN=your_verify_token_here
-ZALO_APP_ID=your_app_id_here
-ZALO_OA_ID=your_oa_id_here
-
-# Webhook Domain
-WEBHOOK_DOMAIN=zalo.truongvinhkhuong.io.vn
+# Optional: Database
+# DATABASE_URL=postgresql://user:pass@localhost/dbname
 ```
 
-### Lấy thông tin từ Zalo
+### Nginx Configuration
 
-1. Đăng nhập [Zalo Developers](https://developers.zalo.me/)
-2. Tạo ứng dụng mới hoặc chọn ứng dụng hiện có
-3. Vào **Official Account** > **Webhook**
-4. Lấy các thông tin:
-   - `App ID`: ID của ứng dụng
-   - `OA ID`: ID của Official Account
-   - `Secret Key`: Key để verify signature
-   - `Verify Token`: Token để verify webhook URL
+File `nginx-webhook.conf` đã được cấu hình sẵn với:
+- SSL/TLS support
+- Security headers
+- Proxy to Docker container
+- Health check endpoint
 
-## Cấu hình Webhook trên Zalo
+## Dashboard
 
-### 1. Thiết lập Webhook URL
+Dashboard web cung cấp:
 
-- Webhook URL: `https://zalo.truongvinhkhuong.io.vn/webhook`
-- Verify Token: Sử dụng giá trị `ZALO_VERIFY_TOKEN` từ file `.env`
+- **Thống kê real-time**: Số lượng events, event cuối cùng
+- **Trạng thái server**: Online/Offline status
+- **Cấu hình webhook**: URL, tokens, endpoints
+- **Quick actions**: Các nút truy cập nhanh
 
-### 2. Đăng ký Events
+Truy cập: `https://your-domain.com/`
 
-Trong phần **Webhook Events**, chọn các events muốn nhận:
+## Security
 
-- `user_send_text` - Người dùng gửi tin nhắn text
-- `user_send_image` - Người dùng gửi hình ảnh
-- `user_send_file` - Người dùng gửi file
-- `user_send_sticker` - Người dùng gửi sticker
-- `user_send_location` - Người dùng gửi vị trí
-- `follow` - Người dùng follow OA
-- `unfollow` - Người dùng unfollow OA
-- `user_submit_info` - Người dùng submit thông tin
-- `user_click_button` - Người dùng click button
+- **Signature Verification**: Xác thực chữ ký từ Zalo
+- **HTTPS Only**: Redirect HTTP to HTTPS
+- **Security Headers**: X-Frame-Options, XSS Protection, etc.
+- **Rate Limiting**: Có thể cấu hình thêm
 
-## Cấu trúc Project
+## Logs
+
+Logs được lưu trong:
+- `webhook.log` - Application logs
+- `/var/log/nginx/` - Nginx access/error logs
+
+## Docker
+
+### Build image
+```bash
+docker build -t zalo-webhook .
+```
+
+### Run container
+```bash
+docker run -d \
+  -p 8001:8000 \
+  --env-file .env \
+  --name zalo-webhook \
+  zalo-webhook
+```
+
+### Docker Compose
+```bash
+# Start services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+## Testing
+
+### Test health check
+```bash
+curl https://your-domain.com/health
+```
+
+### Test webhook (GET)
+```bash
+curl "https://your-domain.com/webhook?hub_challenge=test&hub_verify_token=your_token"
+```
+
+### Test webhook (POST)
+```bash
+curl -X POST https://your-domain.com/webhook \
+  -H "Content-Type: application/json" \
+  -H "X-Zalo-Signature: your_signature" \
+  -d '{"event_name": "test"}'
+```
+
+## 📁 Cấu trúc Project
 
 ```
 webhook-zalo/
-├── app.py                 # FastAPI application chính
-├── config.py             # Cấu hình từ environment variables
-├── middleware.py         # Security middleware
-├── requirements.txt      # Python dependencies
-├── .env.example         # Template cho environment variables
-├── README.md           # Documentation
-├── models/
-│   ├── __init__.py
-│   └── zalo_events.py  # Data models cho Zalo events
-└── handlers/
-    ├── __init__.py
-    ├── event_handler.py      # Main event handler
-    ├── message_handler.py    # Xử lý tin nhắn
-    └── user_action_handler.py # Xử lý hành động user
+├── app.py                 # Main FastAPI application
+├── config.py             # Configuration settings
+├── docker-compose.yml    # Docker services
+├── Dockerfile           # Docker image
+├── requirements.txt     # Python dependencies
+├── nginx-webhook.conf   # Nginx configuration
+├── restart_service.sh   # Service restart script
+├── handlers/            # Event handlers
+├── models/              # Data models
+└── logs/               # Application logs
 ```
 
-## 🔍 API Endpoints
+## Troubleshooting
 
-### Health Check
-```
-GET /
-```
-Kiểm tra trạng thái server.
+### Service không khởi động
+```bash
+# Kiểm tra logs
+docker-compose logs
 
-### Webhook Verification
-```
-GET /webhook?hub.challenge=XXX&hub.verify_token=YYY
-```
-Endpoint để Zalo verify webhook URL.
-
-### Webhook Events
-```
-POST /webhook
-```
-Endpoint nhận events từ Zalo.
-
-### Recent Events (Debug)
-```
-GET /events
-```
-Xem các events gần đây (để debug).
-
-### API Documentation
-```
-GET /docs
-```
-FastAPI tự động tạo API documentation.
-
-## 🚀 Deployment
-
-### Option 1: Docker
-
-Tạo `Dockerfile`:
-
-```dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-EXPOSE 8000
-
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Restart service
+./restart_service.sh
 ```
 
-Chạy với Docker:
+### Nginx errors
+```bash
+# Test nginx config
+sudo nginx -t
+
+# Reload nginx
+sudo systemctl reload nginx
+```
+
+### Port conflicts
+```bash
+# Kiểm tra port usage
+sudo netstat -tlnp | grep :8001
+
+# Thay đổi port trong docker-compose.yml
+```
+
+## 📈 Monitoring
+
+- **Health Check**: `/health` endpoint
+- **Metrics**: Số lượng events, response time
+- **Logs**: Application và nginx logs
+- **Status**: Dashboard real-time
+
+## Updates
+
+Để cập nhật service:
 
 ```bash
-docker build -t zalo-webhook .
-docker run -p 8000:8000 --env-file .env zalo-webhook
+# Pull latest code
+git pull
+
+# Restart với code mới
+./restart_service.sh
 ```
 
-### Option 2: Systemd Service
-
-Tạo file `/etc/systemd/system/zalo-webhook.service`:
-
-```ini
-[Unit]
-Description=Zalo Webhook Server
-After=network.target
-
-[Service]
-Type=exec
-User=www-data
-Group=www-data
-WorkingDirectory=/path/to/webhook-zalo
-Environment=PATH=/path/to/venv/bin
-EnvironmentFile=/path/to/webhook-zalo/.env
-ExecStart=/path/to/venv/bin/uvicorn app:app --host 0.0.0.0 --port 8000
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-### Option 3: Nginx Proxy
-
-Cấu hình Nginx:
-
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name zalo.truongvinhkhuong.io.vn;
-    
-    ssl_certificate /path/to/ssl/cert.pem;
-    ssl_certificate_key /path/to/ssl/key.pem;
-    
-    location / {
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-## Logging
-
-Logs được lưu vào:
-- Console output
-- File `webhook.log`
-
-Cấu hình log level thông qua `LOG_LEVEL` environment variable.
-
-## 🛠️ Tùy chỉnh
-
-### Thêm xử lý tin nhắn
-
-Chỉnh sửa `handlers/message_handler.py`:
-
-```python
-async def _handle_normal_text(self, text: str, event: UserSendTextEvent) -> bool:
-    # Thêm logic xử lý tin nhắn của bạn ở đây
-    if "đặt hàng" in text.lower():
-        return await self._handle_order_request(text, event)
-    
-    return await self._send_response(event.user_id_by_app, "Tôi đã nhận được tin nhắn của bạn!")
-```
-
-### Thêm database
-
-Uncomment các dòng database trong `requirements.txt` và thêm models:
-
-```python
-# models/database.py
-from sqlalchemy import create_engine, Column, String, DateTime, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
-Base = declarative_base()
-
-class EventLog(Base):
-    __tablename__ = "event_logs"
-    
-    id = Column(String, primary_key=True)
-    event_name = Column(String, index=True)
-    user_id = Column(String, index=True)
-    data = Column(Text)
-    timestamp = Column(DateTime)
-```
-
-## Debug
-
-### Kiểm tra logs
-```bash
-tail -f webhook.log
-```
-
-### Test webhook locally
-```bash
-# Sử dụng ngrok để expose local server
-ngrok http 8000
-
-# Cập nhật webhook URL trên Zalo với URL từ ngrok
-```
-
-### Kiểm tra recent events
-```bash
-curl https://zalo.truongvinhkhuong.io.vn/events
-```
-
-## Bảo mật
-
-- Signature verification với HMAC-SHA256
-- Rate limiting (100 requests/minute mặc định)
-- Request size limiting (10MB max)
-- Header validation
-- HTTPS required cho production
-
-## Hỗ trợ
-
-Nếu gặp vấn đề, check:
-
-1. **Webhook không nhận được events**
-   - Kiểm tra URL có accessible từ Internet không
-   - Verify token có đúng không
-   - SSL certificate có hợp lệ không
-
-2. **Signature validation fail**
-   - Kiểm tra `ZALO_SECRET_KEY` có đúng không
-   - Đảm bảo secret key không có space thừa
-
-3. **Server error**
-   - Check logs trong `webhook.log`
-   - Kiểm tra environment variables
-   - Đảm bảo dependencies đã được cài đặt đầy đủ
 
 
