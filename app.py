@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import json
@@ -63,6 +63,16 @@ async def home(request: Request):
 async def dashboard(request: Request):
     """Dashboard quản lý webhook"""
     return templates.TemplateResponse("dashboard.html", {"request": request})
+
+@app.get("/og-image.png")
+async def og_image():
+    """Trả về PNG nhỏ làm ảnh chia sẻ (1200x630 đề xuất, nhưng dùng ảnh nhỏ tối giản)."""
+    # 1x1 transparent PNG bytes
+    png_bytes = (
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89"
+        b"\x00\x00\x00\x0cIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\x0d\n\x2d\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+    )
+    return Response(content=png_bytes, media_type="image/png")
 
 @app.get("/health")
 async def health_check():
