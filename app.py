@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException
+from fastapi import BackgroundTasks
 from fastapi.responses import JSONResponse, HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -99,7 +100,7 @@ async def webhook_verification(hub_challenge: str = None, hub_verify_token: str 
         raise HTTPException(status_code=403, detail="Verification failed")
 
 @app.post("/webhook")
-async def handle_webhook(request: Request):
+async def handle_webhook(request: Request, background_tasks: BackgroundTasks):
     """
     Endpoint chính để nhận các sự kiện từ Zalo
     """
@@ -108,8 +109,12 @@ async def handle_webhook(request: Request):
         body = await request.body()
         body_str = body.decode('utf-8')
         
-        # Lấy signature từ header (nếu có)
-        signature = request.headers.get('X-Zalo-Signature', '')
+        # Lấy signature từ header (Zalo có thể dùng 'X-Zalo-Signature' hoặc 'X-ZSign')
+        signature = (
+            request.headers.get('X-Zalo-Signature')
+            or request.headers.get('X-ZSign')
+            or ''
+        )
         
         # Verify signature
         if not verify_signature(body_str, signature):
@@ -129,16 +134,14 @@ async def handle_webhook(request: Request):
         zalo_event = parse_zalo_event(event_data)
         
         if zalo_event:
-            # Xử lý event
-            await event_handler.handle_event(zalo_event)
-            logger.info(f"Successfully handled event: {zalo_event.event_name}")
+            # Đưa việc xử lý vào background để phản hồi 200 sớm cho Zalo
+            background_tasks.add_task(event_handler.handle_event, zalo_event)
+            logger.info(f"Queued event for async handling: {zalo_event.event_name}")
         else:
             logger.warning(f"Unknown event type: {event_data}")
         
-        return JSONResponse(
-            status_code=200,
-            content={"status": "success", "message": "Event processed"}
-        )
+        # Trả về 200 ngay lập tức theo khuyến nghị của Zalo
+        return JSONResponse(status_code=200, content={"message": "ok"})
         
     except HTTPException:
         raise
