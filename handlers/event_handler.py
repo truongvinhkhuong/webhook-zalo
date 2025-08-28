@@ -69,7 +69,17 @@ class EventHandler:
         # Message events
         if isinstance(event, (UserSendTextEvent, UserSendImageEvent, UserSendFileEvent, 
                             UserSendStickerEvent, UserSendLocationEvent)):
-            return await self.message_handler.handle_message_event(event)
+            handled = await self.message_handler.handle_message_event(event)
+            try:
+                # Ghi riêng sự kiện ảnh vào DB nếu có
+                if isinstance(event, UserSendImageEvent):
+                    from app import AsyncSessionLocal, ImageMessageEvent
+                    async with AsyncSessionLocal() as session:
+                        await self._persist_image_event(session, event)
+                return handled
+            except Exception as e:
+                logger.error(f"DB persist error: {e}")
+                return handled
         
         # User action events
         elif isinstance(event, (FollowOAEvent, UnfollowOAEvent, UserSubmitInfoEvent, 
@@ -79,6 +89,22 @@ class EventHandler:
         # Generic event handler
         else:
             return await self._handle_generic_event(event)
+
+    async def _persist_image_event(self, session, event: "UserSendImageEvent") -> None:
+        attachments = event.message.attachments or []
+        record = ImageMessageEvent(
+            app_id=event.app_id,
+            user_id_by_app=event.user_id_by_app,
+            sender_id=event.sender.id if getattr(event, "sender", None) else "",
+            recipient_id=event.recipient.id if getattr(event, "recipient", None) else "",
+            event_name=event.event_name,
+            timestamp=int(event.timestamp),
+            msg_id=event.message.msg_id if event.message else None,
+            text=event.message.text if event.message else None,
+            attachments={"attachments": attachments},
+        )
+        session.add(record)
+        await session.commit()
     
     async def _handle_generic_event(self, event: ZaloEvent) -> bool:
         """Xử lý các events chưa được định nghĩa cụ thể"""

@@ -14,6 +14,9 @@ from models.zalo_events import ZaloEvent, parse_zalo_event
 from handlers.event_handler import EventHandler
 from config import settings
 import os
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import String, Integer, BigInteger, JSON, Index
 
 # Cấu hình logging
 logging.basicConfig(
@@ -38,6 +41,43 @@ event_handler = EventHandler()
 
 # Khởi tạo Jinja2 templates
 templates = Jinja2Templates(directory="templates")
+
+# ===================== Database setup (SQLAlchemy Async) =====================
+class Base(DeclarativeBase):
+    pass
+
+class ImageMessageEvent(Base):
+    __tablename__ = "image_message_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    app_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    user_id_by_app: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    sender_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    recipient_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    event_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    timestamp: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    msg_id: Mapped[str] = mapped_column(String(128), nullable=True)
+    text: Mapped[str] = mapped_column(String(2048), nullable=True)
+    attachments: Mapped[dict] = mapped_column(JSON, nullable=True)
+
+    __table_args__ = (
+        Index("idx_image_msg_user_time", "user_id_by_app", "timestamp"),
+    )
+
+engine = create_async_engine(settings.DATABASE_URL, echo=False, pool_pre_ping=True)
+AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+
+async def init_models():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+@app.on_event("startup")
+async def on_startup():
+    try:
+        await init_models()
+        logger.info("Database tables ensured")
+    except Exception as e:
+        logger.error(f"Failed to init database: {e}")
 
 def verify_signature(request_body: str, signature: str) -> bool:
     """

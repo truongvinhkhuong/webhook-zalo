@@ -18,7 +18,10 @@ class Settings(BaseSettings):
     REQUIRE_SIGNATURE: bool = os.getenv("REQUIRE_SIGNATURE", "False").lower() == "true"
     
     # Database settings (nếu cần lưu trữ events)
-    DATABASE_URL: Optional[str] = os.getenv("DATABASE_URL")
+    DATABASE_URL: Optional[str] = os.getenv(
+        "DATABASE_URL",
+        "postgresql+asyncpg://webhook_user:your_password_here@postgres:5432/zalo_webhook"
+    )
     
     # Webhook domain
     WEBHOOK_DOMAIN: str = os.getenv("WEBHOOK_DOMAIN", "zalo.truongvinhkhuong.io.vn")
