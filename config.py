@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     ZALO_VERIFY_TOKEN: Optional[str] = os.getenv("ZALO_VERIFY_TOKEN")
     ZALO_APP_ID: Optional[str] = os.getenv("ZALO_APP_ID")
     ZALO_OA_ID: Optional[str] = os.getenv("ZALO_OA_ID")
+    REQUIRE_SIGNATURE: bool = os.getenv("REQUIRE_SIGNATURE", "False").lower() == "true"
     
     # Database settings (nếu cần lưu trữ events)
     DATABASE_URL: Optional[str] = os.getenv("DATABASE_URL")

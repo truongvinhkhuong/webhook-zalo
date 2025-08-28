@@ -42,6 +42,9 @@ def verify_signature(request_body: str, signature: str) -> bool:
     """
     Xác thực chữ ký từ Zalo để đảm bảo request hợp lệ
     """
+    # Cho phép tắt bắt buộc chữ ký khi REQUIRE_SIGNATURE=False
+    if not settings.REQUIRE_SIGNATURE:
+        return True
     if not settings.ZALO_SECRET_KEY:
         logger.warning("ZALO_SECRET_KEY chưa được cấu hình")
         return True  # Bỏ qua validation nếu chưa có secret key
