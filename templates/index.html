@@ -21,8 +21,8 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #3eaef4 0%, #2c8bc4 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -37,20 +37,23 @@
         }
         
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #3eaef4 0%, #2c8bc4 100%);
             color: white;
-            padding: 30px;
+            padding: 40px 30px;
             text-align: center;
         }
         
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
         }
         
         .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
+            font-size: 1.2em;
+            opacity: 0.95;
+            font-weight: 300;
         }
         
         .content {
@@ -90,17 +93,25 @@
         }
         
         .stat-card {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
             text-align: center;
-            border-left: 4px solid #667eea;
+            border: 1px solid #e8f4fd;
+            box-shadow: 0 2px 8px rgba(62, 174, 244, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(62, 174, 244, 0.15);
         }
         
         .stat-card h3 {
-            color: #667eea;
-            font-size: 2em;
+            color: #3eaef4;
+            font-size: 2.2em;
             margin-bottom: 10px;
+            font-weight: 600;
         }
         
         .stat-card p {
@@ -113,22 +124,27 @@
         }
         
         .section h2 {
-            color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #667eea;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #3eaef4;
+            font-weight: 500;
+            font-size: 1.5em;
         }
         
         .webhook-info {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
             margin-bottom: 20px;
+            border: 1px solid #e8f4fd;
+            box-shadow: 0 2px 8px rgba(62, 174, 244, 0.08);
         }
         
         .webhook-info h3 {
-            color: #667eea;
+            color: #3eaef4;
             margin-bottom: 15px;
+            font-weight: 500;
         }
         
         .webhook-url {
@@ -143,18 +159,22 @@
         
         .btn {
             display: inline-block;
-            padding: 12px 24px;
-            background: #667eea;
+            padding: 14px 28px;
+            background: #3eaef4;
             color: white;
             text-decoration: none;
             border-radius: 8px;
-            margin: 5px;
+            margin: 8px;
             transition: all 0.3s ease;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
         }
         
         .btn:hover {
-            background: #5a6fd8;
+            background: #2c8bc4;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(62, 174, 244, 0.3);
         }
         
         .btn-secondary {
@@ -208,13 +228,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Zalo Webhook Server</h1>
+            <h1>Zalo Webhook Server</h1>
             <p>Server nhận và xử lý webhook từ Zalo OA</p>
         </div>
         
         <div class="content">
             <div class="verification-info">
-                <h3>✅ Domain Verification</h3>
+                <h3>Domain Verification</h3>
                 <p>Trang web này đã được cấu hình với meta tag xác thực Zalo Platform</p>
                 <div class="meta-tag">
                     &lt;meta name="zalo-platform-site-verification" content="PyAi4-3z5aqSYvrouwutLMACZtsE-bWXDJam" /&gt;
@@ -238,7 +258,7 @@
             </div>
             
             <div class="section">
-                <h2>📡 Webhook Configuration</h2>
+                <h2>Webhook Configuration</h2>
                 <div class="webhook-info">
                     <h3>Webhook URL</h3>
                     <div class="webhook-url" id="webhook-url">https://zalo.truongvinhkhuong.io.vn/webhook</div>
@@ -256,11 +276,11 @@
             </div>
             
             <div class="section">
-                <h2>🔧 Quick Actions</h2>
-                <a href="/dashboard" class="btn">📊 Dashboard</a>
-                <a href="/events" class="btn">📊 Xem Events</a>
-                <a href="/health" class="btn btn-secondary">💚 Health Check</a>
-                <a href="/webhook" class="btn btn-secondary">🔗 Test Webhook</a>
+                <h2>Quick Actions</h2>
+                <a href="/dashboard" class="btn">Dashboard</a>
+                <a href="/events" class="btn">Xem Events</a>
+                <a href="/health" class="btn btn-secondary">Health Check</a>
+                <a href="/webhook" class="btn btn-secondary">Test Webhook</a>
             </div>
         </div>
         
