@@ -132,6 +132,16 @@ async def webhook_verification(hub_challenge: str = None, hub_verify_token: str 
     """
     Endpoint để Zalo verify webhook URL
     """
+    # Kiểm tra nếu có verify token được cấu hình
+    if not settings.ZALO_VERIFY_TOKEN:
+        logger.warning("ZALO_VERIFY_TOKEN chưa được cấu hình, bỏ qua verification")
+        return hub_challenge
+    
+    # Kiểm tra nếu có token từ request
+    if not hub_verify_token:
+        logger.error("Webhook verification failed. No token provided")
+        raise HTTPException(status_code=403, detail="No verification token provided")
+    
     if hub_verify_token == settings.ZALO_VERIFY_TOKEN:
         logger.info("Webhook verification successful")
         return hub_challenge

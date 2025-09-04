@@ -14,13 +14,13 @@ class ZaloMessage(BaseModel):
     msg_id: str
     text: Optional[str] = None
     attachments: Optional[List[Dict[str, Any]]] = None
-    # Removed timestamp as it's not present in actual webhook data
+    timestamp: Optional[int] = None  # Optional vì không phải lúc nào cũng có
 
 class ZaloEvent(BaseModel):
     """Base class cho tất cả các sự kiện từ Zalo"""
     app_id: str
     event_name: str
-    timestamp: int
+    timestamp: str  # Zalo gửi timestamp dưới dạng string
     user_id_by_app: str
     
     class Config:

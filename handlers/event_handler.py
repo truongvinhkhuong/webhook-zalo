@@ -92,13 +92,15 @@ class EventHandler:
 
     async def _persist_image_event(self, session, event: "UserSendImageEvent") -> None:
         attachments = event.message.attachments or []
+        # Chuyển đổi timestamp từ string sang int
+        timestamp_int = int(event.timestamp) if isinstance(event.timestamp, str) else event.timestamp
         record = ImageMessageEvent(
             app_id=event.app_id,
             user_id_by_app=event.user_id_by_app,
             sender_id=event.sender.id if getattr(event, "sender", None) else "",
             recipient_id=event.recipient.id if getattr(event, "recipient", None) else "",
             event_name=event.event_name,
-            timestamp=int(event.timestamp),
+            timestamp=timestamp_int,
             msg_id=event.message.msg_id if event.message else None,
             text=event.message.text if event.message else None,
             attachments={"attachments": attachments},
@@ -147,8 +149,12 @@ class EventHandler:
             event["timestamp"] = event["timestamp"].isoformat()
             if event.get("data", {}).get("timestamp"):
                 # Convert unix timestamp to readable format
+                timestamp_value = event["data"]["timestamp"]
+                # Xử lý cả string và int timestamp
+                if isinstance(timestamp_value, str):
+                    timestamp_value = int(timestamp_value)
                 event["data"]["timestamp_readable"] = datetime.fromtimestamp(
-                    event["data"]["timestamp"]
+                    timestamp_value
                 ).isoformat()
         
         return events
